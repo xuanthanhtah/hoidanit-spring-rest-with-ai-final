@@ -76,12 +76,19 @@ Indexes:
 | Column | Type | Constraints | Description |
 |--------|------|-------------|-------------|
 | id | BIGINT | PK, AUTO_INCREMENT | |
-| name | VARCHAR(255) | NOT NULL | Company name |
+| name | VARCHAR(255) | NOT NULL, UNIQUE | Company name |
 | description | TEXT | NULLABLE | |
 | address | VARCHAR(255) | NULLABLE | |
 | logo | VARCHAR(255) | NULLABLE | Logo image path/URL |
 | created_at | TIMESTAMP | NOT NULL, DEFAULT CURRENT_TIMESTAMP | |
 | updated_at | TIMESTAMP | NULLABLE, ON UPDATE CURRENT_TIMESTAMP | |
+
+Indexes:
+- `UNIQUE INDEX idx_companies_name ON companies(name)`
+
+Notes:
+- Implemented in `feature/company/Company.java` (unique constraint declared via `@Table(uniqueConstraints)`).
+- `Company.users` inverse mapping (`@OneToMany(mappedBy = "company")`) is added together with the User company relation (Phase 3).
 
 ### roles
 
@@ -107,6 +114,10 @@ Indexes:
 
 Indexes:
 - `UNIQUE INDEX idx_permissions_path_method ON permissions(api_path, method)`
+
+Notes:
+- Implemented in `feature/permission/Permission.java` (unique constraint declared via `@Table(uniqueConstraints)`).
+- `Permission.roles` inverse mapping (`mappedBy = "permissions"`) is added together with the Role entity (Phase 2).
 
 ### user_role (Join Table)
 

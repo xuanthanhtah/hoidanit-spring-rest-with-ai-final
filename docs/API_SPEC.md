@@ -399,16 +399,25 @@ Delete a user. Also revokes all their refresh tokens.
 
 ## 3. Companies
 
+> Implemented in `feature/company`. Same response conventions as Permissions (validation error shape with
+> `details`, `null` fields omitted via `@JsonInclude(NON_NULL)`).
+
 ### GET /companies 🔒
 
 List all companies with pagination.
 
-**Query Parameters:** same as `/users` (page, size, sort)
+**Query Parameters:**
+| Param | Type | Default | Description |
+|-------|------|---------|-------------|
+| page | int | 1 | Page number (1-based) |
+| size | int | 10 | Items per page |
+| sort | string | id,asc | Sort field and direction |
 
 **Success Response (200):**
 ```json
 {
   "statusCode": 200,
+  "message": "Lấy danh sách công ty thành công",
   "data": {
     "meta": { "page": 1, "pageSize": 10, "pages": 2, "total": 15 },
     "result": [
@@ -419,12 +428,10 @@ List all companies with pagination.
         "address": "Ho Chi Minh City",
         "logo": "/logos/hoidanit.png",
         "createdAt": "20xx-01-01T00:00:00Z",
-        "updatedAt": null
+        "updatedAt": "20xx-01-01T00:00:00Z"
       }
     ]
-  },
-  "message": "Fetch all companies",
-  "timestamp": "20xx-02-28T10:00:00"
+  }
 }
 ```
 
@@ -432,27 +439,12 @@ List all companies with pagination.
 
 ### GET /companies/{id} 🔒
 
-**Success Response (200):**
-```json
-{
-  "statusCode": 200,
-  "data": {
-    "id": 1,
-    "name": "HoiDanIT",
-    "description": "Education platform",
-    "address": "Ho Chi Minh City",
-    "logo": "/logos/hoidanit.png",
-    "createdAt": "20xx-01-01T00:00:00Z",
-    "updatedAt": null
-  },
-  "message": "Fetch company",
-  "timestamp": "20xx-02-28T10:00:00"
-}
-```
+**Success Response (200):** single company (same structure as list item above), message `Lấy thông tin công ty thành công`.
 
 **Errors:**
 | Status | When |
 |--------|------|
+| 400 | `id` is not a number |
 | 404 | Company not found |
 
 ---
@@ -469,33 +461,43 @@ List all companies with pagination.
 }
 ```
 
-**Success Response (201):**
+**Validation:**
+| Field | Rule |
+|-------|------|
+| name | required, max 255, unique |
+| description | optional, max 65535 |
+| address | optional, max 255 |
+| logo | optional, max 255 |
+
+**Success Response (201):** `Location: /api/v1/companies/{id}`
 ```json
 {
   "statusCode": 201,
+  "message": "Tạo công ty thành công",
   "data": {
     "id": 2,
     "name": "FPT Software",
     "description": "IT outsourcing",
     "address": "Ha Noi",
     "logo": "/logos/fpt.png",
-    "createdAt": "20xx-02-28T10:00:00Z"
-  },
-  "message": "Company created",
-  "timestamp": "20xx-02-28T10:00:00"
+    "createdAt": "20xx-02-28T10:00:00Z",
+    "updatedAt": "20xx-02-28T10:00:00Z"
+  }
 }
 ```
 
 **Errors:**
 | Status | When |
 |--------|------|
-| 400 | Validation failed (blank name) |
+| 400 | Validation failed (blank name, field too long) |
+| 401 | Missing or invalid JWT |
+| 409 | Company name already exists |
 
 ---
 
 ### PUT /companies 🔒
 
-**Request Body:**
+**Request Body:** (`id` required, other fields same rules as POST; omitted optional fields are cleared to `null`)
 ```json
 {
   "id": 2,
@@ -506,13 +508,14 @@ List all companies with pagination.
 }
 ```
 
-**Success Response (200):** same structure as POST.
+**Success Response (200):** same structure as POST, message `Cập nhật công ty thành công`.
 
 **Errors:**
 | Status | When |
 |--------|------|
-| 400 | Validation failed |
+| 400 | Validation failed (incl. missing `id`) |
 | 404 | Company not found |
+| 409 | Name already used by another company |
 
 ---
 
@@ -522,9 +525,7 @@ List all companies with pagination.
 ```json
 {
   "statusCode": 200,
-  "data": null,
-  "message": "Company deleted",
-  "timestamp": "20xx-02-28T12:00:00"
+  "message": "Xóa công ty thành công"
 }
 ```
 
@@ -533,7 +534,7 @@ List all companies with pagination.
 |--------|------|
 | 404 | Company not found |
 
-**Note:** Deleting a company sets `company_id = null` on all associated users (does NOT delete users).
+**Note:** Deleting a company must set `company_id = null` on all associated users (does NOT delete users). This is added with the User module (Phase 3) — `User` has no `company` relation yet.
 
 ---
 
@@ -668,14 +669,26 @@ List all roles with pagination.
 
 ## 5. Permissions
 
+> Implemented in `feature/permission`. Validation errors use the actual `GlobalExceptionHandler` shape:
+> `{"statusCode":400,"message":"Dữ liệu không hợp lệ","error":"Bad Request","details":["field: message", ...]}`.
+> Fields with `null` values are omitted from responses (`@JsonInclude(NON_NULL)`).
+
 ### GET /permissions 🔒
 
 List all permissions with pagination.
+
+**Query Parameters:**
+| Param | Type | Default | Description |
+|-------|------|---------|-------------|
+| page | int | 1 | Page number (1-based) |
+| size | int | 10 | Items per page |
+| sort | string | id,asc | Sort field and direction |
 
 **Success Response (200):**
 ```json
 {
   "statusCode": 200,
+  "message": "Lấy danh sách quyền hạn thành công",
   "data": {
     "meta": { "page": 1, "pageSize": 10, "pages": 1, "total": 10 },
     "result": [
@@ -686,12 +699,10 @@ List all permissions with pagination.
         "method": "POST",
         "module": "USER",
         "createdAt": "20xx-01-01T00:00:00Z",
-        "updatedAt": null
+        "updatedAt": "20xx-01-01T00:00:00Z"
       }
     ]
-  },
-  "message": "Fetch all permissions",
-  "timestamp": "20xx-02-28T10:00:00"
+  }
 }
 ```
 
@@ -699,11 +710,12 @@ List all permissions with pagination.
 
 ### GET /permissions/{id} 🔒
 
-**Success Response (200):** single permission (same structure as list item above).
+**Success Response (200):** single permission (same structure as list item above), message `Lấy thông tin quyền hạn thành công`.
 
 **Errors:**
 | Status | When |
 |--------|------|
+| 400 | `id` is not a number |
 | 404 | Permission not found |
 
 ---
@@ -720,34 +732,43 @@ List all permissions with pagination.
 }
 ```
 
-**Success Response (201):**
+**Validation:**
+| Field | Rule |
+|-------|------|
+| name | required, max 100 |
+| apiPath | required, max 255 |
+| method | required, one of `GET`, `POST`, `PUT`, `PATCH`, `DELETE` |
+| module | required, max 100 |
+
+**Success Response (201):** `Location: /api/v1/permissions/{id}`
 ```json
 {
   "statusCode": 201,
+  "message": "Tạo quyền hạn thành công",
   "data": {
     "id": 1,
     "name": "CREATE_USER",
     "apiPath": "/api/v1/users",
     "method": "POST",
     "module": "USER",
-    "createdAt": "20xx-02-28T10:00:00Z"
-  },
-  "message": "Permission created",
-  "timestamp": "20xx-02-28T10:00:00"
+    "createdAt": "20xx-02-28T10:00:00Z",
+    "updatedAt": "20xx-02-28T10:00:00Z"
+  }
 }
 ```
 
 **Errors:**
 | Status | When |
 |--------|------|
-| 400 | Validation failed (blank name, invalid method) |
+| 400 | Validation failed (blank field, invalid method) |
+| 401 | Missing or invalid JWT |
 | 409 | Duplicate apiPath + method combination |
 
 ---
 
 ### PUT /permissions 🔒
 
-**Request Body:**
+**Request Body:** (`id` required, other fields same rules as POST)
 ```json
 {
   "id": 1,
@@ -758,14 +779,14 @@ List all permissions with pagination.
 }
 ```
 
-**Success Response (200):** same structure as POST.
+**Success Response (200):** same structure as POST, message `Cập nhật quyền hạn thành công`.
 
 **Errors:**
 | Status | When |
 |--------|------|
-| 400 | Validation failed |
+| 400 | Validation failed (incl. missing `id`) |
 | 404 | Permission not found |
-| 409 | Duplicate apiPath + method (if changed to existing combo) |
+| 409 | Duplicate apiPath + method (if changed to another permission's combo) |
 
 ---
 
@@ -775,13 +796,11 @@ List all permissions with pagination.
 ```json
 {
   "statusCode": 200,
-  "data": null,
-  "message": "Permission deleted",
-  "timestamp": "20xx-02-28T12:00:00"
+  "message": "Xóa quyền hạn thành công"
 }
 ```
 
-**Note:** Also removes this permission from all roles (clears join table entries).
+**Note:** Removing this permission from all roles (clearing `permission_role`) will be added with the Role module (Phase 2).
 
 **Errors:**
 | Status | When |

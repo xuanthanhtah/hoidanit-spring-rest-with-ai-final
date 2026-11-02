@@ -1,6 +1,6 @@
 # Project Status
 
-> Last updated: 20xx-03-01 | By: @hoidanit | Session: #0
+> Last updated: 2026-11-02 | By: Claude Code | Session: #2
 >
 > AI: update this file at the end of every session when asked.
 > Follow this exact format. Keep it concise — under 80 lines.
@@ -8,29 +8,27 @@
 ---
 
 ## Completed
-- ✅ Project skeleton (Spring Boot 4, Maven, application.yml)
-- ✅ Documentation setup (CLAUDE.md, PROJECT-RULES, ARCHITECTURE, DATABASE, API_SPEC)
-- ✅ ADR-001: Refresh token strategy decided (Cookie + Body)
-- ✅ ADR-002: File upload strategy decided (Local Storage + Static Resource Serving)
-- ✅ AI workflow setup (.claude/commands/)
+- ✅ Setup: project skeleton, docs (CLAUDE.md, PROJECT-RULES, ARCHITECTURE, DATABASE, API_SPEC), ADR-001 refresh token, ADR-002 file upload, .claude/commands
+- ✅ 2026-11-02: Permission + Company CRUD (`/api/v1/permissions`, `/api/v1/companies`) — entity, repo, DTOs, service, controller, shared `PageResponse`, CONTEXT.md each, 22 unit tests passing
 
 ## In Progress
-_Nothing yet — starting Phase 0._
+- 🔄 Integration tests `PermissionControllerTest` + `CompanyControllerTest` (14 cases each) written but NOT yet run — blocked by MySQL credentials
 
 ## Deferred Issues
-_None._
+- [P1] Permission delete must detach from roles once Role exists (Phase 2) — see feature/permission/CONTEXT.md
+- [P1] Company delete must null out `users.company_id` once User has the `company` relation (Phase 3) — see feature/company/CONTEXT.md (also: logo file not deleted from storage, Phase 6)
+- [P2] `application-test.yml` uses dev DB (rules want separate test DB + create-drop); legacy `UserController` returns entities, no `/api/v1` prefix (fix in Phase 3)
 
 ## Warnings
-_None._
+- ⚠️ MySQL rejects `root`/`123456` from application*.yml (Access denied) — every @SpringBootTest fails until fixed. `./mvnw` not executable → use `sh ./mvnw`
+- ⚠️ `companies.name` is UNIQUE (decided this session, not in original spec) — relies on MySQL case-insensitive collation
+- ⚠️ `AppException`/`InvalidRequestException` from PROJECT-RULES don't exist; code uses `DuplicateResourceException` (409) + `ResourceNotFoundException` (404)
 
 ## Next Tasks
-1. **[P0]** Base exception classes (AppException, ResourceNotFoundException, InvalidRequestException)
-2. **[P0]** GlobalExceptionHandler (@RestControllerAdvice)
-3. **[P0]** ApiResponse wrapper (record)
-4. **[P0]** SecurityConfig cơ bản (permitAll tạm — chưa bật JWT)
-5. **[P0]** JwtConfig (JwtEncoder, JwtDecoder — chuẩn bị sẵn, chưa enforce)
-6. **[P1]** Permission CRUD + test
-7. **[P1]** Company CRUD + test
+1. **[P0]** Base exceptions (AppException, ResourceNotFoundException, InvalidRequestException) + GlobalExceptionHandler + ApiResponse record
+2. **[P0]** SecurityConfig cơ bản (permitAll tạm) + JwtConfig (JwtEncoder/JwtDecoder — chuẩn bị sẵn, chưa enforce)
+3. **[P1]** Fix MySQL credentials, run `PermissionControllerTest` + `CompanyControllerTest` → tick Phase 1 milestones
+4. **[P1]** Role CRUD + ManyToMany Permission (Phase 2)
 
 ## Milestones
 
