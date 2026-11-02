@@ -1,13 +1,19 @@
 spring:
   datasource:
-    url: ${TEST_DB_URL}           # MySQL test database — NOT H2
-    username: ${TEST_DB_USERNAME}
-    password: ${TEST_DB_PASSWORD}
+    # MySQL test database — NOT H2. Defaults match the local Docker container (port 3307).
+    url: ${TEST_DB_URL:jdbc:mysql://localhost:3307/hr_management_test?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false}
+    username: ${TEST_DB_USERNAME:root}
+    password: ${TEST_DB_PASSWORD:123456}
+    driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     hibernate:
       ddl-auto: create-drop       # Tạo schema khi test start, xóa khi kết thúc
     show-sql: false
+  data:
+    web:
+      pageable:
+        one-indexed-parameters: true
 
 jwt:
-  secret: ${TEST_JWT_SECRET_KEY}
+  secret: ${TEST_JWT_SECRET_KEY:hoidanitjwtsecretkeyHS256hoidanitjwtsecretkeyHS256hoidanitjwt}
   expiration: 900000
