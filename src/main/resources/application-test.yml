@@ -1,20 +1,13 @@
 spring:
-  application:
-    name: hoidanit-spring-rest-with-ai
   datasource:
-    url: jdbc:mysql://localhost:3306/hr_management?allowPublicKeyRetrieval=true&useSSL=false
-    username: root
-    password: 123456
-    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: ${TEST_DB_URL}           # MySQL test database — NOT H2
+    username: ${TEST_DB_USERNAME}
+    password: ${TEST_DB_PASSWORD}
   jpa:
     hibernate:
-      ddl-auto: update
-    show-sql: true
-  data:
-    web:
-      pageable:
-        one-indexed-parameters: true
+      ddl-auto: create-drop       # Tạo schema khi test start, xóa khi kết thúc
+    show-sql: false
 
 jwt:
-  secret: hoidanitjwtsecretkeyHS256hoidanitjwtsecretkeyHS256hoidanitjwt
-  expiration: 86400000
+  secret: ${TEST_JWT_SECRET_KEY}
+  expiration: 900000
