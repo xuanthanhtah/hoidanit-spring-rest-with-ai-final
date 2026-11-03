@@ -1,16 +1,23 @@
 package vn.hoidanit.springrestwithai.feature.permission;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import vn.hoidanit.springrestwithai.feature.role.Role;
+
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "permissions", uniqueConstraints = @UniqueConstraint(
@@ -32,6 +39,11 @@ public class Permission {
 
     @Column(nullable = false, length = 100)
     private String module;
+
+    // Inverse side: Role owns permission_role
+    @ManyToMany(mappedBy = "permissions", fetch = FetchType.LAZY)
+    @JsonIgnore
+    private List<Role> roles = new ArrayList<>();
 
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
@@ -81,6 +93,14 @@ public class Permission {
 
     public void setModule(String module) {
         this.module = module;
+    }
+
+    public List<Role> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(List<Role> roles) {
+        this.roles = roles;
     }
 
     public Instant getCreatedAt() {

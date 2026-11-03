@@ -29,3 +29,4 @@ Roles will bundle permissions (Phase 2), and the RBAC filter (Phase 7) will matc
 
 ## Refactor Log
 (Add entries here when significant changes are made. Do NOT edit sections above.)
+- 2026-11-02 (Phase 2): Added inverse `@ManyToMany(mappedBy = "permissions", fetch = LAZY) @JsonIgnore List<Role> roles`. `deletePermission` now detaches the permission from every role before deleting (resolves the "No `roles` inverse mapping" limitation). See `feature/role/CONTEXT.md`.

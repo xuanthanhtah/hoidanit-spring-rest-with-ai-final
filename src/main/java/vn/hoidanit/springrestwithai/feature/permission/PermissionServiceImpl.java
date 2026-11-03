@@ -74,6 +74,9 @@ public class PermissionServiceImpl implements PermissionService {
     @Transactional
     public void deletePermission(Long id) {
         Permission permission = findPermissionOrThrow(id);
+        // Permission is the inverse side: detach from owning roles so permission_role rows are removed
+        permission.getRoles().forEach(role -> role.getPermissions().remove(permission));
+        permission.getRoles().clear();
         this.permissionRepository.delete(permission);
         log.info("Deleted permission id={}", id);
     }

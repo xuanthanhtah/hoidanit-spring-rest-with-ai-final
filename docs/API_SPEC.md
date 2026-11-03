@@ -540,9 +540,12 @@ List all companies with pagination.
 
 ## 4. Roles
 
+> Implemented in `feature/role`. Same error/validation shape as Permissions (section 5); `null` fields are omitted.
+> Role ↔ Permission is ManyToMany; Role owns the `permission_role` join table.
+
 ### GET /roles 🔒
 
-List all roles with pagination.
+List all roles with pagination (`?page=1&size=10&sort=id`, 1-based page). Each role includes its permissions.
 
 **Success Response (200):**
 ```json
@@ -559,13 +562,11 @@ List all roles with pagination.
           { "id": 1, "name": "CREATE_USER", "apiPath": "/api/v1/users", "method": "POST", "module": "USER" },
           { "id": 4, "name": "VIEW_USERS", "apiPath": "/api/v1/users", "method": "GET", "module": "USER" }
         ],
-        "createdAt": "20xx-01-01T00:00:00Z",
-        "updatedAt": null
+        "createdAt": "20xx-01-01T00:00:00Z"
       }
     ]
   },
-  "message": "Fetch all roles",
-  "timestamp": "20xx-02-28T10:00:00"
+  "message": "Lấy danh sách vai trò thành công"
 }
 ```
 
@@ -573,7 +574,7 @@ List all roles with pagination.
 
 ### GET /roles/{id} 🔒
 
-**Success Response (200):** single role with permissions array (same structure as list item above).
+**Success Response (200):** single role with permissions array (same structure as list item above), message `"Lấy thông tin vai trò thành công"`.
 
 **Errors:**
 | Status | When |
@@ -593,7 +594,11 @@ List all roles with pagination.
 }
 ```
 
-**Success Response (201):**
+- `name`: required, max 100, **unique**
+- `description`: optional, max 255
+- `permissionIds`: optional (`null`/`[]` → role without permissions); duplicate ids are ignored
+
+**Success Response (201)** — `Location: /api/v1/roles/{id}`:
 ```json
 {
   "statusCode": 201,
@@ -609,16 +614,17 @@ List all roles with pagination.
     ],
     "createdAt": "20xx-02-28T10:00:00Z"
   },
-  "message": "Role created",
-  "timestamp": "20xx-02-28T10:00:00"
+  "message": "Tạo vai trò thành công"
 }
 ```
 
 **Errors:**
 | Status | When |
 |--------|------|
-| 400 | Validation failed (blank name) |
-| 404 | One or more Permission IDs not found |
+| 400 | Validation failed (blank name, too long, null element in `permissionIds`) |
+| 401 | Missing/invalid JWT |
+| 404 | One or more Permission IDs not found (message lists the missing ids) |
+| 409 | Role name already exists |
 
 ---
 
@@ -634,15 +640,16 @@ List all roles with pagination.
 }
 ```
 
-**Success Response (200):** same structure as POST.
+**Success Response (200):** same structure as POST, message `"Cập nhật vai trò thành công"`.
 
-**Note:** `permissionIds` replaces the entire permission list (not additive).
+**Note:** `permissionIds` replaces the entire permission list (not additive). `null`/`[]` removes all permissions.
 
 **Errors:**
 | Status | When |
 |--------|------|
-| 400 | Validation failed |
+| 400 | Validation failed (missing `id`, blank name) |
 | 404 | Role or Permission not found |
+| 409 | Name already used by another role |
 
 ---
 
@@ -652,13 +659,12 @@ List all roles with pagination.
 ```json
 {
   "statusCode": 200,
-  "data": null,
-  "message": "Role deleted",
-  "timestamp": "20xx-02-28T12:00:00"
+  "message": "Xóa vai trò thành công"
 }
 ```
 
-**Note:** Also removes this role from all users who had it (clears join table entries).
+**Note:** Removes the role's `permission_role` rows; the permissions themselves are kept.
+Removing the role from users (`user_role`) will be added with the User↔Role relation (Phase 3).
 
 **Errors:**
 | Status | When |
@@ -800,7 +806,7 @@ List all permissions with pagination.
 }
 ```
 
-**Note:** Removing this permission from all roles (clearing `permission_role`) will be added with the Role module (Phase 2).
+**Note:** The permission is first detached from all roles (clears its `permission_role` rows), then deleted. Roles are kept.
 
 **Errors:**
 | Status | When |

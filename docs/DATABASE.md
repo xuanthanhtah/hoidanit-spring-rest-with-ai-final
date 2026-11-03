@@ -95,10 +95,15 @@ Notes:
 | Column | Type | Constraints | Description |
 |--------|------|-------------|-------------|
 | id | BIGINT | PK, AUTO_INCREMENT | |
-| name | VARCHAR(100) | NOT NULL | e.g. ADMIN, HR, USER, MANAGER |
+| name | VARCHAR(100) | NOT NULL, UNIQUE | e.g. ADMIN, HR, USER, MANAGER |
 | description | VARCHAR(255) | NULLABLE | |
 | created_at | TIMESTAMP | NOT NULL, DEFAULT CURRENT_TIMESTAMP | |
 | updated_at | TIMESTAMP | NULLABLE, ON UPDATE CURRENT_TIMESTAMP | |
+
+Notes:
+- Implemented in `feature/role/Role.java`. `name` UNIQUE decided in Phase 2 (not in original spec) — enables 409 on duplicate, relies on MySQL case-insensitive collation.
+- `Role.permissions` is the owning side of `permission_role` (`@BatchSize(50)` to avoid N+1 on list).
+- `Role.users` inverse mapping (`mappedBy = "roles"`) is added together with the User↔Role relation (Phase 3).
 
 ### permissions
 
@@ -117,7 +122,7 @@ Indexes:
 
 Notes:
 - Implemented in `feature/permission/Permission.java` (unique constraint declared via `@Table(uniqueConstraints)`).
-- `Permission.roles` inverse mapping (`mappedBy = "permissions"`) is added together with the Role entity (Phase 2).
+- `Permission.roles` inverse mapping (`mappedBy = "permissions"`, `@JsonIgnore`) implemented in Phase 2. Deleting a permission detaches it from roles in the service first (inverse side does not clean the join table).
 
 ### user_role (Join Table)
 

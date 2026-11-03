@@ -18,7 +18,9 @@ import vn.hoidanit.springrestwithai.exception.ResourceNotFoundException;
 import vn.hoidanit.springrestwithai.feature.permission.dto.CreatePermissionRequest;
 import vn.hoidanit.springrestwithai.feature.permission.dto.PermissionResponse;
 import vn.hoidanit.springrestwithai.feature.permission.dto.UpdatePermissionRequest;
+import vn.hoidanit.springrestwithai.feature.role.Role;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -192,6 +194,21 @@ class PermissionServiceImplTest {
 
         permissionService.deletePermission(1L);
 
+        verify(permissionRepository, times(1)).delete(permission);
+    }
+
+    @Test
+    @DisplayName("Should detach permission from all roles before deleting it")
+    void deletePermission_assignedToRoles_detachesFromRoles() {
+        Role role = new Role();
+        role.setPermissions(new ArrayList<>(List.of(permission)));
+        permission.setRoles(new ArrayList<>(List.of(role)));
+        when(permissionRepository.findById(1L)).thenReturn(Optional.of(permission));
+
+        permissionService.deletePermission(1L);
+
+        assertTrue(role.getPermissions().isEmpty());
+        assertTrue(permission.getRoles().isEmpty());
         verify(permissionRepository, times(1)).delete(permission);
     }
 
