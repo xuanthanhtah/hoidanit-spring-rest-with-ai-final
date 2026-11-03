@@ -223,3 +223,16 @@ spring:
 - `feature/file/dto/FileUploadResponse.java` — response DTO
 - `config/SecurityConfig.java` — permitAll() for /uploads/**, add /api/v1/files to secured routes
 - `application.yml` — upload path, size limit, allowed extensions config
+
+---
+
+## Implementation Notes (2026-11-03)
+
+- **File names are rejected, not sanitized**: invalid names (anything outside `[A-Za-z0-9._-]`, or > 200 chars)
+  return 400 per API_SPEC. The "Sanitized" example above is superseded.
+- **Serving uses a resource handler** (`config/WebConfig`: `/uploads/** → file:{base-dir}/`) instead of
+  `spring.web.resources.static-locations`, which would serve files at `/avatars/...` (not `/uploads/...`) and
+  replace the default `classpath:/static` location.
+- **Servlet size limit returns 400**: `MaxUploadSizeExceededException` is mapped to 400 in `GlobalExceptionHandler`
+  to match API_SPEC (the note above about 413 no longer applies).
+- Service is `FileService`/`FileServiceImpl` (validation + local write); swapping to cloud storage means a new impl.

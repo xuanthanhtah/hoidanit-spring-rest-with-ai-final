@@ -13,19 +13,21 @@
 - ✅ 2026-11-02: Role CRUD (`/api/v1/roles`) + ManyToMany Permission (Role owns `permission_role`, `Permission.roles` inverse); permission delete detaches from roles — 81/81 tests passing (unit + integration on MySQL test DB)
 
 - ✅ 2026-11-03: User CRUD (`/api/v1/users`) rewritten with DTOs + ManyToOne Company + ManyToMany Role (User owns `user_role`); company/role delete now detach users — 115/115 tests passing
+- ✅ 2026-11-03: File upload (`POST /api/v1/files`, ADR-002) — local storage under `app.upload.base-dir`, served at public `GET /uploads/**`; names/extension/size/folder validated (400); `InvalidRequestException` added — 135/135 tests passing
 
 ## In Progress
 - (none)
 
 ## Deferred Issues
 - [P1] User delete must revoke refresh tokens (Phase 5) — see feature/user/CONTEXT.md
-- [P2] Company delete does not remove logo file from storage (Phase 6)
+- [P2] Orphan files never cleaned up: company/user delete or avatar/logo replacement leaves the old file on disk — see feature/file/CONTEXT.md
 - [P2] `CustomUserDetailsService` grants hard-coded `ROLE_USER` — load real roles in Phase 4
 
 ## Warnings
 - ⚠️ `./mvnw` not executable → use `sh ./mvnw`
 - ⚠️ `companies.name` and `roles.name` are UNIQUE (decided, not in original spec) — rely on MySQL case-insensitive collation
-- ⚠️ `AppException`/`InvalidRequestException` from PROJECT-RULES don't exist; code uses `DuplicateResourceException` (409) + `ResourceNotFoundException` (404)
+- ⚠️ `AppException` from PROJECT-RULES doesn't exist; code uses `DuplicateResourceException` (409), `ResourceNotFoundException` (404), `InvalidRequestException` (400)
+- ⚠️ Uploaded files go to `./uploads` (git-ignored); tests write to `target/test-uploads`
 
 ## Next Tasks
 1. **[P0]** Base exceptions (AppException, ResourceNotFoundException, InvalidRequestException) + GlobalExceptionHandler + ApiResponse record
@@ -64,10 +66,10 @@
 - [ ] Full auth flow test
 
 ### Phase 6 — File Upload (ADR-002)
-- [ ] StorageService (upload, delete, getUrl)
-- [ ] POST /api/v1/files/upload (multipart/form-data)
-- [ ] File validation (size, MIME type whitelist)
-- [ ] Integration test
+- [x] FileService (upload) — delete/cleanup deferred
+- [x] POST /api/v1/files (multipart/form-data)
+- [x] File validation (name, extension whitelist, size, folder)
+- [x] Unit + integration test
 
 ### Phase 7 — RBAC (Permission-based Authorization)
 - [ ] Middleware: match request (path + method) → Permission → Role

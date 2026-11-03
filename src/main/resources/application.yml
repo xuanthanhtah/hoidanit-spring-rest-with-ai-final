@@ -14,7 +14,18 @@ spring:
     web:
       pageable:
         one-indexed-parameters: true
+  servlet:
+    multipart:
+      max-file-size: 5MB          # Servlet-layer limit, mapped to 400 by GlobalExceptionHandler
+      max-request-size: 6MB       # file + metadata overhead
 
 jwt:
   secret: hoidanitjwtsecretkeyHS256hoidanitjwtsecretkeyHS256hoidanitjwt
   expiration: 86400000
+
+app:
+  upload:
+    base-dir: uploads              # relative to working dir, or absolute path
+    max-size-bytes: 5242880        # 5 MB — business check (400)
+    allowed-extensions: [jpg, jpeg, png, gif, webp]
+    allowed-folders: [avatars, logos]

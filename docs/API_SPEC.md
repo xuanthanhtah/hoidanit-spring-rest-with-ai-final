@@ -853,6 +853,14 @@ Validation errors include field details:
 
 ## 6. Files
 
+> Implemented in `feature/file` (`POST /api/v1/files`). Same response conventions as other modules (Vietnamese
+> `message`, e.g. `"Upload file thành công"`). Clarifications to the rules below:
+> - file name: only `A-Z a-z 0-9 - _ .` (no spaces/diacritics), max 200 chars — rejected with 400, never sanitized
+> - extension check is case-insensitive (`PHOTO.JPG` ok); `Location` header = `fileUrl`
+> - files > 5 MB caught by the servlet multipart limit also return **400** (not 413)
+> - missing `file` part or `folder` param → 400; non-multipart request → 415
+> - `GET /uploads/**` is public (no JWT)
+
 ### POST /files 🔒
 
 Upload a single file to the server. The returned `fileName` is then used to update

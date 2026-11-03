@@ -8,12 +8,16 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
 import vn.hoidanit.springrestwithai.dto.ApiResponse;
@@ -39,7 +43,47 @@ public class GlobalExceptionHandler {
                                 .body(ApiResponse.conflict(ex.getMessage()));
         }
 
+        @ExceptionHandler(InvalidRequestException.class)
+        public ResponseEntity<ApiResponse<Void>> handleInvalidRequest(InvalidRequestException ex) {
+                log.warn("InvalidRequestException: {}", ex.getMessage());
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                                .body(ApiResponse.badRequest(ex.getMessage()));
+        }
+
         // ========== SPRING MVC EXCEPTIONS ==========
+
+        @ExceptionHandler(MissingServletRequestPartException.class)
+        public ResponseEntity<ApiResponse<Void>> handleMissingPart(MissingServletRequestPartException ex) {
+                log.warn("MissingServletRequestPartException: thiếu part '{}'", ex.getRequestPartName());
+                String message = String.format("Thiếu trường '%s' trong request", ex.getRequestPartName());
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                                .body(ApiResponse.badRequest(message));
+        }
+
+        @ExceptionHandler(MissingServletRequestParameterException.class)
+        public ResponseEntity<ApiResponse<Void>> handleMissingParameter(MissingServletRequestParameterException ex) {
+                log.warn("MissingServletRequestParameterException: thiếu tham số '{}'", ex.getParameterName());
+                String message = String.format("Thiếu tham số '%s' trong request", ex.getParameterName());
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                                .body(ApiResponse.badRequest(message));
+        }
+
+        // Servlet multipart limit hit before the service check — API_SPEC requires 400, not 413
+        @ExceptionHandler(MaxUploadSizeExceededException.class)
+        public ResponseEntity<ApiResponse<Void>> handleMaxUploadSize(MaxUploadSizeExceededException ex) {
+                log.warn("MaxUploadSizeExceededException: {}", ex.getMessage());
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                                .body(ApiResponse.badRequest("Kích thước file vượt quá giới hạn cho phép (5 MB)"));
+        }
+
+        @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
+        public ResponseEntity<ApiResponse<Void>> handleMediaTypeNotSupported(HttpMediaTypeNotSupportedException ex) {
+                log.warn("HttpMediaTypeNotSupportedException: {}", ex.getContentType());
+                String message = String.format("Content-Type '%s' không được hỗ trợ cho endpoint này",
+                                ex.getContentType());
+                return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE)
+                                .body(ApiResponse.ofError(415, message, "Unsupported Media Type"));
+        }
 
         @ExceptionHandler(MethodArgumentTypeMismatchException.class)
         public ResponseEntity<ApiResponse<Void>> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {

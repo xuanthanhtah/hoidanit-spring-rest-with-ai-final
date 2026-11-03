@@ -13,7 +13,18 @@ spring:
     web:
       pageable:
         one-indexed-parameters: true
+  servlet:
+    multipart:
+      max-file-size: 5MB          # Servlet-layer limit, mapped to 400 by GlobalExceptionHandler
+      max-request-size: 6MB       # file + metadata overhead
 
 jwt:
   secret: ${TEST_JWT_SECRET_KEY:hoidanitjwtsecretkeyHS256hoidanitjwtsecretkeyHS256hoidanitjwt}
   expiration: 900000
+
+app:
+  upload:
+    base-dir: target/test-uploads  # isolated from real uploads; cleaned by FileControllerTest
+    max-size-bytes: 5242880
+    allowed-extensions: [jpg, jpeg, png, gif, webp]
+    allowed-folders: [avatars, logos]
