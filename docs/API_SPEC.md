@@ -199,6 +199,12 @@ Get current logged-in user info.
 
 ## 2. Users
 
+> Implemented in `feature/user` (`/api/v1/users`). Same conventions as Roles/Companies (Vietnamese `message`,
+> validation error shape with `details`, `null` fields omitted). Deviations from the samples below:
+> - password must be 8–100 chars; `age`, `gender`, `address`, `avatar`, `companyId`, `roleIds` are optional on POST/PUT
+> - PUT replaces the resource: `companyId: null` clears the company, `roleIds` replaces the whole list
+> - DELETE does not revoke refresh tokens yet (Phase 5)
+
 ### GET /users 🔒
 
 List all users with pagination.

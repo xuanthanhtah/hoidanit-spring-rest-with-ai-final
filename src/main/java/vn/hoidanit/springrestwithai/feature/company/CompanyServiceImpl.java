@@ -73,6 +73,9 @@ public class CompanyServiceImpl implements CompanyService {
     @Transactional
     public void deleteCompany(Long id) {
         Company company = findCompanyOrThrow(id);
+        // Company is the inverse side: users survive the delete with company_id = NULL
+        company.getUsers().forEach(user -> user.setCompany(null));
+        company.getUsers().clear();
         this.companyRepository.delete(company);
         log.info("Deleted company id={}", id);
     }

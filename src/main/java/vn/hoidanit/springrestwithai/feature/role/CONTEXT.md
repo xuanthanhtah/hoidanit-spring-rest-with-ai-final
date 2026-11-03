@@ -33,3 +33,4 @@ Users will get roles in Phase 3, and the RBAC filter (Phase 7) will check user â
 
 ## Refactor Log
 (Add entries here when significant changes are made. Do NOT edit sections above.)
+- 2026-11-03: Added inverse `Role.users` (`mappedBy = "roles"`, `@JsonIgnore`); `deleteRole` now detaches the role from users before deleting (resolves the Phase 3 limitation above). See feature/user/CONTEXT.md.

@@ -10,11 +10,13 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import vn.hoidanit.springrestwithai.feature.permission.Permission;
+import vn.hoidanit.springrestwithai.feature.user.User;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -42,6 +44,11 @@ public class Role {
             inverseJoinColumns = @JoinColumn(name = "permission_id"))
     @BatchSize(size = 50)
     private List<Permission> permissions = new ArrayList<>();
+
+    // Inverse side: User owns user_role
+    @ManyToMany(mappedBy = "roles", fetch = FetchType.LAZY)
+    @JsonIgnore
+    private List<User> users = new ArrayList<>();
 
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
@@ -83,6 +90,14 @@ public class Role {
 
     public void setPermissions(List<Permission> permissions) {
         this.permissions = permissions;
+    }
+
+    public List<User> getUsers() {
+        return users;
+    }
+
+    public void setUsers(List<User> users) {
+        this.users = users;
     }
 
     public Instant getCreatedAt() {

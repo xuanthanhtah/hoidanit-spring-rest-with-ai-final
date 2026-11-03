@@ -4,20 +4,29 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
+import org.hibernate.annotations.BatchSize;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import vn.hoidanit.springrestwithai.feature.company.Company;
+import vn.hoidanit.springrestwithai.feature.role.Role;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
-@Table(name = "users")
+@Table(name = "users", indexes = @Index(name = "idx_users_company", columnList = "company_id"))
 public class User {
 
     public enum GenderEnum {
@@ -28,42 +37,50 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank(message = "Email không được để trống")
-    @Email(message = "Email không đúng định dạng")
-    @Column(unique = true, nullable = false)
-    private String email;
-
-    @NotBlank(message = "Tên không được để trống")
-    @Size(min = 2, max = 100, message = "Tên phải từ 2 đến 100 ký tự")
+    @Column(nullable = false, length = 100)
     private String name;
 
-    @NotBlank(message = "Mật khẩu không được để trống")
-    @Size(min = 6, message = "Mật khẩu phải có ít nhất 6 ký tự")
+    @Column(nullable = false, unique = true, length = 255)
+    private String email;
+
+    // BCrypt hash only
+    @Column(nullable = false, length = 255)
     private String password;
 
-    @Min(value = 1, message = "Tuổi phải lớn hơn 0")
-    @Max(value = 150, message = "Tuổi không hợp lệ")
     private Integer age;
 
-    @Size(max = 255, message = "Địa chỉ không được quá 255 ký tự")
+    @Column(length = 255)
     private String address;
 
     @Enumerated(EnumType.STRING)
+    @Column(length = 20)
     private GenderEnum gender;
 
+    @Column(length = 255)
     private String avatar;
 
+    // Owning side: users.company_id (nullable — a user may have no company)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "company_id")
+    private Company company;
+
+    // Owning side: User manages the user_role join table
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "user_role",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "role_id"))
+    @BatchSize(size = 50)
+    private List<Role> roles = new ArrayList<>();
+
+    @CreationTimestamp
+    @Column(nullable = false, updatable = false)
     private Instant createdAt;
 
+    @UpdateTimestamp
     private Instant updatedAt;
 
     public User() {
-    }
-
-    public User(Long id, String name, String email) {
-        this.id = id;
-        this.name = name;
-        this.email = email;
     }
 
     public Long getId() {
@@ -130,34 +147,27 @@ public class User {
         this.avatar = avatar;
     }
 
+    public Company getCompany() {
+        return company;
+    }
+
+    public void setCompany(Company company) {
+        this.company = company;
+    }
+
+    public List<Role> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(List<Role> roles) {
+        this.roles = roles;
+    }
+
     public Instant getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(Instant createdAt) {
-        this.createdAt = createdAt;
-    }
-
     public Instant getUpdatedAt() {
         return updatedAt;
-    }
-
-    public void setUpdatedAt(Instant updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
-    @Override
-    public String toString() {
-        return "User{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", email='" + email + '\'' +
-                ", age=" + age +
-                ", address='" + address + '\'' +
-                ", gender=" + gender +
-                ", avatar='" + avatar + '\'' +
-                ", createdAt=" + createdAt +
-                ", updatedAt=" + updatedAt +
-                '}';
     }
 }

@@ -88,7 +88,7 @@ Indexes:
 
 Notes:
 - Implemented in `feature/company/Company.java` (unique constraint declared via `@Table(uniqueConstraints)`).
-- `Company.users` inverse mapping (`@OneToMany(mappedBy = "company")`) is added together with the User company relation (Phase 3).
+- `Company.users` inverse mapping (`@OneToMany(mappedBy = "company")`) implemented in Phase 3; deleting a company sets `users.company_id = NULL` (service-level detach).
 
 ### roles
 
@@ -103,7 +103,7 @@ Notes:
 Notes:
 - Implemented in `feature/role/Role.java`. `name` UNIQUE decided in Phase 2 (not in original spec) — enables 409 on duplicate, relies on MySQL case-insensitive collation.
 - `Role.permissions` is the owning side of `permission_role` (`@BatchSize(50)` to avoid N+1 on list).
-- `Role.users` inverse mapping (`mappedBy = "roles"`) is added together with the User↔Role relation (Phase 3).
+- `Role.users` inverse mapping (`mappedBy = "roles"`) implemented in Phase 3; deleting a role removes its `user_role` rows (service-level detach).
 
 ### permissions
 

@@ -85,6 +85,9 @@ public class RoleServiceImpl implements RoleService {
     @Transactional
     public void deleteRole(Long id) {
         Role role = findRoleOrThrow(id);
+        // Role is the inverse side of user_role: detach from owning users so their join rows are removed
+        role.getUsers().forEach(user -> user.getRoles().remove(role));
+        role.getUsers().clear();
         // Role owns permission_role, so Hibernate removes its join rows; permissions themselves are kept
         this.roleRepository.delete(role);
         log.info("Deleted role id={}", id);

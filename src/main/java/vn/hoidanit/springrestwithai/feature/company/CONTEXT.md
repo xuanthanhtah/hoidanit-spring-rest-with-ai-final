@@ -29,3 +29,4 @@ Users (employees) will belong to at most one company (Phase 3, `users.company_id
 
 ## Refactor Log
 (Add entries here when significant changes are made. Do NOT edit sections above.)
+- 2026-11-03: Added inverse `Company.users` (`mappedBy = "company"`, `@JsonIgnore`); `deleteCompany` now sets `company = null` on its users before deleting (resolves the Phase 3 limitation above). See feature/user/CONTEXT.md.

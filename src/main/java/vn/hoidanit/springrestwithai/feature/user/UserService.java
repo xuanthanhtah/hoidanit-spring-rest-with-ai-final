@@ -1,16 +1,21 @@
 package vn.hoidanit.springrestwithai.feature.user;
 
-import java.util.List;
+import org.springframework.data.domain.Pageable;
+
+import vn.hoidanit.springrestwithai.dto.PageResponse;
+import vn.hoidanit.springrestwithai.feature.user.dto.CreateUserRequest;
+import vn.hoidanit.springrestwithai.feature.user.dto.UpdateUserRequest;
+import vn.hoidanit.springrestwithai.feature.user.dto.UserResponse;
 
 public interface UserService {
 
-    List<User> getAllUsers();
+    PageResponse<UserResponse> getAllUsers(Pageable pageable);
 
-    User getUserById(Long id);
+    UserResponse getUserById(Long id);
 
-    User createUser(User user);
+    UserResponse createUser(CreateUserRequest request);
 
-    User updateUser(Long id, User user);
+    UserResponse updateUser(UpdateUserRequest request);
 
     void deleteUser(Long id);
 }

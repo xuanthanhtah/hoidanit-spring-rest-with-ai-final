@@ -1,16 +1,23 @@
 package vn.hoidanit.springrestwithai.feature.company;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import vn.hoidanit.springrestwithai.feature.user.User;
+
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "companies", uniqueConstraints = @UniqueConstraint(
@@ -32,6 +39,11 @@ public class Company {
 
     @Column(length = 255)
     private String logo;
+
+    // Inverse side: User owns users.company_id
+    @OneToMany(mappedBy = "company", fetch = FetchType.LAZY)
+    @JsonIgnore
+    private List<User> users = new ArrayList<>();
 
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
@@ -81,6 +93,14 @@ public class Company {
 
     public void setLogo(String logo) {
         this.logo = logo;
+    }
+
+    public List<User> getUsers() {
+        return users;
+    }
+
+    public void setUsers(List<User> users) {
+        this.users = users;
     }
 
     public Instant getCreatedAt() {

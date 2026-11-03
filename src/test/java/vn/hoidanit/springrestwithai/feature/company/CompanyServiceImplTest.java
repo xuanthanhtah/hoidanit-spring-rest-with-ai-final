@@ -18,12 +18,14 @@ import vn.hoidanit.springrestwithai.exception.ResourceNotFoundException;
 import vn.hoidanit.springrestwithai.feature.company.dto.CompanyResponse;
 import vn.hoidanit.springrestwithai.feature.company.dto.CreateCompanyRequest;
 import vn.hoidanit.springrestwithai.feature.company.dto.UpdateCompanyRequest;
+import vn.hoidanit.springrestwithai.feature.user.User;
 
 import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -192,6 +194,21 @@ class CompanyServiceImplTest {
 
         companyService.deleteCompany(1L);
 
+        verify(companyRepository, times(1)).delete(company);
+    }
+
+    @Test
+    @DisplayName("Should null out company on its users before deleting")
+    void deleteCompany_withUsers_detachesUsers() {
+        User user = new User();
+        user.setCompany(company);
+        company.getUsers().add(user);
+        when(companyRepository.findById(1L)).thenReturn(Optional.of(company));
+
+        companyService.deleteCompany(1L);
+
+        assertNull(user.getCompany());
+        assertTrue(company.getUsers().isEmpty());
         verify(companyRepository, times(1)).delete(company);
     }
 

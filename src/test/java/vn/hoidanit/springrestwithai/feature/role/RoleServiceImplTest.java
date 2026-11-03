@@ -20,6 +20,7 @@ import vn.hoidanit.springrestwithai.feature.permission.PermissionRepository;
 import vn.hoidanit.springrestwithai.feature.role.dto.CreateRoleRequest;
 import vn.hoidanit.springrestwithai.feature.role.dto.RoleResponse;
 import vn.hoidanit.springrestwithai.feature.role.dto.UpdateRoleRequest;
+import vn.hoidanit.springrestwithai.feature.user.User;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -253,6 +254,21 @@ class RoleServiceImplTest {
 
         roleService.deleteRole(1L);
 
+        verify(roleRepository, times(1)).delete(role);
+    }
+
+    @Test
+    @DisplayName("Should detach role from its users before deleting")
+    void deleteRole_assignedToUsers_detachesUsers() {
+        User user = new User();
+        user.setRoles(new ArrayList<>(List.of(role)));
+        role.getUsers().add(user);
+        when(roleRepository.findById(1L)).thenReturn(Optional.of(role));
+
+        roleService.deleteRole(1L);
+
+        assertTrue(user.getRoles().isEmpty());
+        assertTrue(role.getUsers().isEmpty());
         verify(roleRepository, times(1)).delete(role);
     }
 
